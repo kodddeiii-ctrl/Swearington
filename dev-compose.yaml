@@ -1,0 +1,33 @@
+services:
+  bot:
+    build: .
+    container_name: swearington
+    env_file: .env
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=swearington
+      - DB_PASSWORD=swearington_password
+      - DB_NAME=swearington
+    restart: unless-stopped
+    volumes:
+      - ./app-data:/data
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:16-alpine
+    container_name: swearjar
+    environment:
+      - POSTGRES_USER=swearington
+      - POSTGRES_PASSWORD=swearington_password
+      - POSTGRES_DB=swearington
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swearington"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
