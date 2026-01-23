@@ -65,6 +65,11 @@ function setGuildTerms(guildId, terms) {
     fs.writeFileSync(termsFile, JSON.stringify(allTerms));
 }
 
+function guildTermExists(guildId, term) {
+    const terms = getGuildTerms(guildId);
+    return terms.some(t => t.toLowerCase() === term.toLowerCase());
+}
+
 function addGuildTerm(guildId, term) {
     const terms = getGuildTerms(guildId);
     terms.push(term);
@@ -166,6 +171,9 @@ client.on('interactionCreate', async (interaction) => {
                 return await interaction.reply('You need Administrator permissions.');
             }
             const newTerm = interaction.options.getString('term');
+            if (guildTermExists(interaction.guildId, newTerm)) {
+                return await interaction.reply(`Term "${newTerm}" already exists.`);
+            }
             addGuildTerm(interaction.guildId, newTerm);
             await interaction.reply(`Added new term: "${newTerm}"`);
         } else if (command === 'removeterm') {
@@ -173,6 +181,9 @@ client.on('interactionCreate', async (interaction) => {
                 return await interaction.reply('You need Administrator permissions.');
             }
             const termToRemove = interaction.options.getString('term');
+            if (!guildTermExists(interaction.guildId, termToRemove)) {
+                return await interaction.reply(`Term "${termToRemove}" not found.`);
+            }
             if (removeGuildTerm(interaction.guildId, termToRemove)) {
                 await interaction.reply(`Removed term: "${termToRemove}"`);
             } else {
