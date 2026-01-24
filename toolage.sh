@@ -11,7 +11,7 @@ fi
 case "$1" in
     build)
         echo "Building..."
-        docker build -t swearington .
+        docker build -t swearington . --no-cache
         ;;
     publish)
         echo "Publishing..."

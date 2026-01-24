@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const postgres = require('pg');
 
-const VERSION = "0.4.0";
+const VERSION = "1.0.0";
 
 // Create Discord Client
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
@@ -94,6 +94,10 @@ const commands = [
     new SlashCommandBuilder().setName('removepoint').setDescription('Remove a point').addUserOption(option => option.setName('user').setDescription('User to remove point from').setRequired(true)),
     new SlashCommandBuilder().setName('addterm').setDescription('Add a banned term').addStringOption(option => option.setName('term').setDescription('Term to add').setRequired(true)),
     new SlashCommandBuilder().setName('removeterm').setDescription('Remove a banned term').addStringOption(option => option.setName('term').setDescription('Term to remove').setRequired(true)),
+    new SlashCommandBuilder().setName('addtermslist').setDescription('Add multiple banned terms').addStringOption(option => option.setName('terms').setDescription('Comma-separated terms to add').setRequired(true)),
+    new SlashCommandBuilder().setName('removetermslist').setDescription('Remove multiple banned terms').addStringOption(option => option.setName('terms').setDescription('Comma-separated terms to remove').setRequired(true)),
+    new SlashCommandBuilder().setName('addtermsfile').setDescription('Add multiple banned terms from a file').addAttachmentOption(option => option.setName('file').setDescription('CSV file containing terms').setRequired(true)),
+    new SlashCommandBuilder().setName('removetermsfile').setDescription('Remove multiple banned terms from a file').addAttachmentOption(option => option.setName('file').setDescription('CSV file containing terms').setRequired(true)),
     new SlashCommandBuilder().setName('setpoints').setDescription('Set user points').addUserOption(option => option.setName('user').setDescription('User').setRequired(true)).addIntegerOption(option => option.setName('points').setDescription('Points to set').setRequired(true)),
     new SlashCommandBuilder().setName('listterms').setDescription('List all banned terms'),
     new SlashCommandBuilder().setName('version').setDescription('Show bot version'),
@@ -189,6 +193,70 @@ client.on('interactionCreate', async (interaction) => {
             } else {
                 await interaction.reply(`Term "${termToRemove}" not found.`);
             }
+        } else if (command === 'addtermslist') {
+            if (!interaction.member.permissions.has('Administrator')) {
+                return await interaction.reply('You need Administrator permissions.');
+            }
+            const termsInput = interaction.options.getString('terms');
+            const termsToAdd = termsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            const addedTerms = [];
+            for (const term of termsToAdd) {
+                if (!guildTermExists(interaction.guildId, term)) {
+                    addGuildTerm(interaction.guildId, term);
+                    addedTerms.push(term);
+                }
+            }
+            await interaction.reply(`Added terms: ${addedTerms.join(', ')}. `);
+        } else if (command === 'removetermslist') {
+            if (!interaction.member.permissions.has('Administrator')) {
+                return await interaction.reply('You need Administrator permissions.');
+            }
+            const termsInput = interaction.options.getString('terms');
+            const termsToRemove = termsInput.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            const removedTerms = [];
+            for (const term of termsToRemove) {
+                if (removeGuildTerm(interaction.guildId, term)) {
+                    removedTerms.push(term);
+                }
+            }
+            await interaction.reply(`Removed terms: ${removedTerms.join(', ')}. `);
+        } else if (command === 'addtermsfile') {
+            if (!interaction.member.permissions.has('Administrator')) {
+                return await interaction.reply('You need Administrator permissions.');
+            }
+            const file = interaction.options.getAttachment('file');
+            if (!file || !file.name.endsWith('.csv') || !file.contentType.includes('text/csv')) {
+                return await interaction.reply('Please provide a valid CSV file.');
+            }
+            const response = await fetch(file.url);
+            const text = await response.text();
+            const termsToAdd = text.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            const addedTerms = [];
+            for (const term of termsToAdd) {
+                if (!guildTermExists(interaction.guildId, term)) {
+                    addGuildTerm(interaction.guildId, term);
+                    addedTerms.push(term);
+                }
+            }
+            await interaction.reply(`Added terms: ${addedTerms.join(', ')}. `);
+        } else if (command === 'removetermsfile') {
+            if (!interaction.member.permissions.has('Administrator')) {
+                return await interaction.reply('You need Administrator permissions.');
+            }
+            const file = interaction.options.getAttachment('file');
+            if (!file || !file.name.endsWith('.csv') || !file.contentType.includes('text/csv')) {
+                return await interaction.reply('Please provide a valid CSV file.');
+            }
+            const response = await fetch(file.url);
+            const text = await response.text();
+            const termsToRemove = text.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            const removedTerms = [];
+            for (const term of termsToRemove) {
+                if (removeGuildTerm(interaction.guildId, term)) {
+                    removedTerms.push(term);
+                }
+            }
+            await interaction.reply(`Removed terms: ${removedTerms.join(', ')}. `);
         } else if (command === 'setpoints') {
             if (!interaction.member.permissions.has('Administrator')) {
                 return await interaction.reply('You need Administrator permissions.');

@@ -5,6 +5,7 @@ Swearington will monitor the chat for swears or banned words. Administrators can
 ## Features
 
 - Create your own terms list. The terms list starts off empty and can be updated via Discord slash commands or manually through the terms file on the server side.
+  - Terms lists can be created one term at a time, with an existing list, or with an existing list file.
 - Administrators have access to update points and update terms.
 - Users can check how many points they or someone else has.
 - Set up as a service architecture with Docker Compose using a published Docker container and PostgreSQL.
@@ -24,6 +25,14 @@ Swearington will monitor the chat for swears or banned words. Administrators can
   - Add a term to the "banned" words list. 
 - /removeterm [term]
   - Remove a term from the "banned" words list.
+- /addtermslist [term, term, term, ...]
+  - Add a list of terms that are comma separated.
+- /removetermslist [term, term, term, ...]
+  - Remove a list of terms that are comma separated.
+- /addtermsfile [file]
+  - Add a list of terms from a Comma Separated Values (CSV) file.
+- /removetermsfile [file]
+  - Remove a list of terms from a Comma Separated Values (CSV) file.
 - /setpoints [user] [count]
   - Set a users points to a specific count.
 - /listterms
@@ -46,6 +55,7 @@ After you've acquired the token and you have the bot running, you will need to a
     - View Channels
     - Send Messages
     - Send Messages in Threads
+    - Attach Files
     - Read Message History
   - Copy the generated URL at the bottom and paste it into the browser.
 

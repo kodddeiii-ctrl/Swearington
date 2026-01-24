@@ -1,6 +1,7 @@
 services:
   bot:
     image: justingarey/swearington:latest
+    pull_policy: daily
     container_name: swearington
     env_file: .env
     environment:
