@@ -110,10 +110,11 @@ const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
 client.once('clientReady', async () => {
     console.log(`Swear Jar Bot v${VERSION} is now online!`);
     console.log(`✓ Bot logged in as ${client.user.tag}`);
+
     client.user.setActivity('for naughty words', {
         type: 'WATCHING'
     });
-});
+
     // Check Database Connection
     try {
         await pool.query('SELECT 1');
@@ -121,6 +122,7 @@ client.once('clientReady', async () => {
     } catch (err) {
         console.error('Failed to connect to database:', err.message);
     }
+});
     // Register Slash Commands
     try {
         await rest.put(Routes.applicationCommands(client.user.id), { body: commands });
