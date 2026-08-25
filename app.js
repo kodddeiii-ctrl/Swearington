@@ -144,7 +144,7 @@ client.on('messageCreate', async (message) => {
     }
     if (newPoints > 0) {
         const count = await getPoints(userId, guildId);
-        message.reply(`✨ Mind your language, angel! ${message.author.displayName} now has ${count} swear${count !== 1 ? 's' : ''}.`);
+        message.reply(`uh oh! ${message.author.displayName} now has ${count} swear${count !== 1 ? 's' : ''}.`);
     }
 });
 
